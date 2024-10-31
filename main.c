@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "lexer.h"
+#include "parser.h"
 
 int repl()
 {
@@ -13,17 +13,17 @@ int repl()
         if (strcmp(buffer, ".quit\n") == 0)
             return 0;
 
-        so_lexer lexer;
-        so_lexer_init(&lexer, buffer);
+        so_parser parser;
+        so_parser_init(&parser, buffer);
+        so_parser_parse(&parser);
 
-        so_token token;
-        while ((token = so_lexer_next_token(&lexer)).type != SO_TT_EOF)
+        for (int i = 0; i < parser.ncommands; i++)
         {
-            printf("%s\n", token.lexeme);
-            so_token_deinit(&token);
+            print_ast(parser.commands[i]);
+            free_ast(parser.commands[i]);
         }
 
-        so_token_deinit(&token);
+        so_parser_deinit(&parser);
 
         memset(buffer, 0, sizeof(buffer));
         printf("> ");
