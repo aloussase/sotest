@@ -116,7 +116,7 @@ so_token so_lexer_string(so_lexer *l)
 
     if (so_lexer_peek(l) != '"')
     {
-        fprintf(stderr, "Unterminated string literal at %d\n", l->current);
+        fprintf(stderr, "warning: unterminated string literal at %d\n", l->current);
         return (so_token){.lexeme = strdup("invalid"), .type = SO_TT_INVALID};
     }
 

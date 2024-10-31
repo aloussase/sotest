@@ -67,7 +67,7 @@ void so_parser_parse(so_parser *p)
             so_token_deinit(&p->current);
             return;
         default:
-            fprintf(stderr, "warning: invalid start of simple expression: %s\n", p->current.lexeme);
+            fprintf(stderr, "warning: invalid start of expression, expected use or call: %s\n", p->current.lexeme);
             so_token_deinit(&p->current);
         }
     }
@@ -97,7 +97,17 @@ void so_parse_call(so_parser *p)
     int nargs = 0;
 
     while (so_parser_advance(p).type != SO_TT_EOF && nargs < MAX_CALL_ARGS)
-        args[nargs++] = so_parser_parse_simple_expression(p);
+    {
+        so_expr *e = so_parser_parse_simple_expression(p);
+        if (e == NULL)
+        {
+            fprintf(stderr, "warning: expected either a string or a number\n");
+            so_token_deinit(&p->current);
+            continue;
+        }
+
+        args[nargs++] = e;
+    }
 
     if (!so_parser_expect(p, SO_TT_EOF))
     {
@@ -140,4 +150,20 @@ void so_parse_load(so_parser *p)
 
 so_expr *so_parser_parse_simple_expression(so_parser *p)
 {
+    so_expr *e = NULL;
+
+    if (p->current.type == SO_TT_STRING)
+    {
+        e = create_string_node(p->current.lexeme);
+        so_token_deinit(&p->current);
+    }
+
+    if (p->current.type == SO_TT_INTEGER)
+    {
+        int n = atoi(p->current.lexeme);
+        e = create_number_node(n);
+        so_token_deinit(&p->current);
+    }
+
+    return e;
 }
