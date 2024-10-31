@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 static so_token so_lexer_string(so_lexer *);
 static so_token so_lexer_integer(so_lexer *);
@@ -114,4 +115,19 @@ so_token so_lexer_integer(so_lexer *l)
 
 so_token so_lexer_bareword(so_lexer *l)
 {
+    while (!so_lexer_eof(l) && !isspace(so_lexer_peek(l)))
+        so_lexer_advance(l);
+
+    char *lexeme = strndup(
+        &l->source[l->start],
+        l->current - l->start);
+
+    so_token_type type = SO_TT_BARE;
+
+    if (strcmp(lexeme, "use") == 0)
+        type = SO_TT_USE;
+    if (strcmp(lexeme, "call") == 0)
+        type = SO_TT_CALL;
+
+    return (so_token){.lexeme = lexeme, .type = type};
 }
