@@ -51,12 +51,12 @@ void so_lexer_deinit(so_lexer *l)
 
 so_token so_lexer_next_token(so_lexer *l)
 {
+    l->start = l->current;
+
     char c = so_lexer_advance(l);
 
     if (c == '\0')
         return (so_token){.lexeme = strdup("eof"), .type = SO_TT_EOF};
-
-    l->start = l->current;
 
     switch (c)
     {
@@ -92,8 +92,8 @@ so_token so_lexer_string(so_lexer *l)
     }
 
     char *lexeme = strndup(
-        &l->source[l->start],
-        l->current - l->start);
+        &l->source[l->start + 1],
+        l->current - l->start - 1);
 
     so_lexer_advance(l);
 
@@ -102,6 +102,14 @@ so_token so_lexer_string(so_lexer *l)
 
 so_token so_lexer_integer(so_lexer *l)
 {
+    while (!so_lexer_eof(l) && so_lexer_peek(l) >= '0' && so_lexer_peek(l) <= '9')
+        so_lexer_advance(l);
+
+    char *lexeme = strndup(
+        &l->source[l->start],
+        l->current - l->start);
+
+    return (so_token){.lexeme = lexeme, .type = SO_TT_INTEGER};
 }
 
 so_token so_lexer_bareword(so_lexer *l)
