@@ -15,6 +15,34 @@ void so_token_deinit(so_token *t)
     t->type = SO_TT_INVALID;
 }
 
+void so_token_type_to_string(so_token_type tt, char buffer[], int size)
+{
+    switch (tt)
+    {
+    case SO_TT_USE:
+        strncpy(buffer, "USE", size);
+        break;
+    case SO_TT_CALL:
+        strncpy(buffer, "CALL", size);
+        break;
+    case SO_TT_BARE:
+        strncpy(buffer, "BAREWORD", size);
+        break;
+    case SO_TT_STRING:
+        strncpy(buffer, "STRING", size);
+        break;
+    case SO_TT_INTEGER:
+        strncpy(buffer, "INTEGER", size);
+        break;
+    case SO_TT_EOF:
+        strncpy(buffer, "EOF", size);
+        break;
+    case SO_TT_INVALID:
+        strncpy(buffer, "INVALID", size);
+        break;
+    }
+}
+
 static char so_lexer_advance(so_lexer *l)
 {
     if (l->current >= l->source_length)

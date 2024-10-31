@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 so_expr *create_string_node(const char *s)
 {
@@ -53,6 +54,8 @@ void print_ast(so_expr *e)
     case SO_EXPR_CALL:
         printf("CALL %s (%d)\n", e->as.call.name, e->as.call.nargs);
         break;
+    default:
+        assert(0 && "unhandled case in print_ast");
     }
 }
 
@@ -68,6 +71,10 @@ void free_ast(so_expr *e)
     case SO_EXPR_LOAD:
         free(e->as.load.name);
         break;
+    case SO_EXPR_CALL:
+        free(e->as.call.name);
+        for (int i = 0; i < e->as.call.nargs; i++)
+            free_ast(e->as.call.args[i]);
     }
     free(e);
 }

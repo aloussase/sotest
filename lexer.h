@@ -12,6 +12,8 @@ typedef enum
     SO_TT_INVALID,
 } so_token_type;
 
+void so_token_type_to_string(so_token_type tt, char buffer[], int size);
+
 typedef struct
 {
     so_token_type type;

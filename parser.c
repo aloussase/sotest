@@ -6,6 +6,7 @@
 
 static void so_parse_call(so_parser *);
 static void so_parse_load(so_parser *);
+static so_expr *so_parser_parse_simple_expression(so_parser *);
 
 static so_token so_parser_advance(so_parser *p)
 {
@@ -17,7 +18,9 @@ static int so_parser_expect(so_parser *p, so_token_type tt)
 {
     if (p->current.type != tt)
     {
-        fprintf(stderr, "warning: expected a different type of token\n");
+        char buffer[20] = {0};
+        so_token_type_to_string(tt, buffer, sizeof(buffer));
+        fprintf(stderr, "warning: expected a different type of token: %s\n", buffer);
         return 0;
     }
     return 1;
@@ -74,7 +77,40 @@ void so_parser_parse(so_parser *p)
 
 void so_parse_call(so_parser *p)
 {
+    if (!so_parser_expect(p, SO_TT_CALL))
+    {
+        so_token_deinit(&p->current);
+        return;
+    }
+
     so_token_deinit(&p->current);
+    so_parser_advance(p);
+
+    if (!so_parser_expect(p, SO_TT_BARE))
+    {
+        so_token_deinit(&p->current);
+        return;
+    }
+
+    so_token name = p->current;
+    so_expr *args[MAX_CALL_ARGS];
+    int nargs = 0;
+
+    while (so_parser_advance(p).type != SO_TT_EOF && nargs < MAX_CALL_ARGS)
+        args[nargs++] = so_parser_parse_simple_expression(p);
+
+    if (!so_parser_expect(p, SO_TT_EOF))
+    {
+        fprintf(stderr, "warning: expected EOF");
+        so_token_deinit(&p->current);
+        return;
+    }
+
+    so_expr *e = create_call_node(name.lexeme, nargs, args);
+    add_command(p, e);
+
+    so_token_deinit(&p->current);
+    so_token_deinit(&name);
 }
 
 void so_parse_load(so_parser *p)
@@ -100,4 +136,8 @@ void so_parse_load(so_parser *p)
 
     so_token_deinit(&use);
     so_token_deinit(&p->current);
+}
+
+so_expr *so_parser_parse_simple_expression(so_parser *p)
+{
 }
